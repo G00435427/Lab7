@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = 4000;
 
+
 const cors = require('cors');
 app.use(cors());
 
@@ -16,11 +17,24 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
-    res.send('Hello World');
+//Connects to MongoDB
+const mongoose = require('mongoose');
+mongoose.connect('mongodb+srv://admin:admin@datarep.7jtog92.mongodb.net/');
+
+  const movieSchema = new mongoose.Schema({
+    title: String,
+    year: String,
+    poster: String
+  });
+ 
+  const MovieModel = mongoose.model('myMovies', movieSchema);
+
+app.get('/api/movies', async (req, res) => {
+  const movies = await MovieModel.find({});
+  res.json(movies);
 });
 
-app.get('/api/movies', (req, res) => {
+{/*app.get('/api/movies', (req, res) => {
    const myMovies = [
     {
       "Title": "Avengers: Infinity War (server)",
@@ -45,12 +59,23 @@ app.get('/api/movies', (req, res) => {
     }
   ] 
     res.json({ myArray: myMovies });
-})
+}) 
+    */}
 
 
-app.post('/api/movies', (req, res) => {
-    console.log(req.body);
-    res.send('POST request to the movies endpoint');
+ app.post('/api/movies', async (req, res)=>{
+
+ const { title, year, poster } = req.body;
+
+ const newMovie = new MovieModel({ title, year, poster });
+ await newMovie.save();
+
+ res.status(201).json({ message: 'Movie created successfully', movie: newMovie });
+ })
+
+ app.get('/api/movie/:id', async (req, res) => {
+  const movie = await Movie.findById(req.params.id);
+  res.send(movie);
 });
 
 
